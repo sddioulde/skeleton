@@ -31,12 +31,9 @@ public class TagController {
 
     @PUT
     @Path("/{tag}")
-    public void addTag(@Valid @NotNull CreateTagRequest tag, @PathParam("tag") String tagName) {
-        //tag.tagName = "hey";
-        //System.out.println(tag.receiptId + " " + tagName + " " + tag.tagName);
-        //Logger log = Logger.getAnonymousLogger();
-        //log.info("HI");// + tag.receiptId + " " + tagName);
-        tags.insert(tag.receiptId, tagName);
+    //public void addTag(@Valid @NotNull CreateTagRequest tag, @PathParam("tag") String tagName) {
+    public void addTag(int receiptId, @PathParam("tag") String tagName) {
+        tags.insert(receiptId, tagName);
     }
 
     @GET
