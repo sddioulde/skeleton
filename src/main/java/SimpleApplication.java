@@ -1,4 +1,5 @@
-import controllers.HelloWorldController;
+//import controllers.HelloWorldController;
+import controllers.StaticHtmlController;
 import controllers.ReceiptController;
 import controllers.TagController;
 import controllers.NetIdController;
@@ -44,7 +45,8 @@ public class SimpleApplication extends Application<Configuration> {
 
         // Register all Controllers below.  Don't forget 
         // you need class and method @Path annotations!
-        env.jersey().register(new HelloWorldController());
+        //env.jersey().register(new HelloWorldController());
+        env.jersey().register(new StaticHtmlController());
         env.jersey().register(new ReceiptController(receiptDao));
         env.jersey().register(new TagController(tagDao));
         env.jersey().register(new NetIdController());
