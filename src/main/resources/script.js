@@ -5,26 +5,13 @@
 $(document).ready(function(){
 
     // base api url
-    baseUrl = 'http://ec2-54-152-190-159.compute-1.amazonaws.com/';
+    //baseUrl = 'http://ec2-54-152-190-159.compute-1.amazonaws.com/';
+    //baseUrl = 'http:localhost:8080/';
+    baseUrl = 'http://ec2-52-3-227-123.compute-1.amazonaws.com/';
 
 
     // get and load all receipts
-    $.ajax({
-        method: "GET",
-        url: baseUrl + 'receipts'
-        })
-        .done(function(receipts){
-            console.log(receipts);
-            $.each(receipts, function(i, val){
-                var merchantName = val.merchantName;
-                var value = val.value;
-                var created = val.created;
-                addReceipt(merchantName, value, created);
-            });
-        })
-        .fail(function(xhr, status, error){
-            console.log(error);
-        });
+    loadReceipts();
 
     // add a receipt
     $('#add-receipt').click(function(){
@@ -32,6 +19,7 @@ $(document).ready(function(){
             '<div id="new-receipt" style="display: block;">\
                 <input id="merchant" placeholder="merchant" type="text">\
                 <input id="amount" placeholder="amount" type="text">\
+                <div class="clearfix">\
                 <div id="new-receipt-actions">\
                     <button id="cancel-receipt">Cancel</button>\
                     <button id="save-receipt">Save</button>\
@@ -50,9 +38,9 @@ $(document).ready(function(){
 
     // save and add new receipt
     $(document).on('click', '#save-receipt', function(){
+        $('#new-receipt-error').remove();
         var merchantName = $('#merchant').val();
         var value = $('#amount').val();
-        var created = new Date();
         var postData = {
             merchant: merchantName,
             amount: value
@@ -62,61 +50,111 @@ $(document).ready(function(){
             url: baseUrl + 'receipts',
             contentType: 'application/json',
             data: JSON.stringify(postData)
-        })
-            .done(function(msg){
-                var time = created.toTimeString().split(' ')[0];
-                comp = time.split(':');
-                var hour = (parseInt(comp[0]) + 4) % 24;
-                console.log(msg);
-                addReceipt(merchantName, value, hour + ':' + comp[1] + ':' + comp[2]);
+            })
+            .done(function(){
+                loadReceipts();
+                $('#new-receipt > input').text("");
+                $('#new-receipt').remove();
+                $('#add-receipt').show();
             })
             .fail(function(xhr, status, error){
+                if(error)
+                    $('#new-receipt').append('<p id="new-receipt-error">Error: ' + error + '</p>');
                 console.log(error);
             });
-
-        $('#new-receipt > input').text("");
-        $('#new-receipt').remove();
-        $('#add-receipt').show();
     });
 
-    $('.add-tag').click(function(){
+    $(document).on('click', '.add-tag', function(){
         var template = '<input class="tag_input" type="text">';
         $(this).before(template);
+        $('.tag_input').focus();
         $(this).hide();
+    });
+
+    $(document).on('click', '.tag', function(){
+        var tag = $(this).find('i').text();
+        toggleTag($(this), tag);
     });
 
     $(document).on('keyup', '.tag_input', function(e){
         var keycode = e.keyCode || e.which;
         if(keycode == 13){
-            // do stuff
-            var tag = $(this).val();
-
-
-            $(this).before('<span class="tag"><b>x</b>&nbsp;&nbsp;<i>' + tag + '</i></span>&nbsp;');
-            $(this).hide();
-            $('.add-tag').show()
+            if($(this).val() != ''){
+                var tag = $(this).val();
+                toggleTag($(this), tag);
+            }
         }
     });
 
-    function addReceipt(merchantName, value, created){
+    function toggleTag(target, tag){
+        var receiptId = target.closest('.receipt').attr('id');
+        $.ajax({
+            method: 'PUT',
+            url: baseUrl + 'tags/' + tag,
+            contentType: 'application/json',
+            data: receiptId
+            })
+            .done(function(){
+                loadReceipts();
+            })
+            .fail(function(xhr, status, error){
+                console.log(xhr, status, error);
+            });
+    }
+
+    function addReceipt(id, merchantName, value, created){
+
+        var tagSpans = '';
+        $.ajax({
+            method: 'GET',
+            url: baseUrl + 'tags/receipt/' + id,
+            async: false
+            })
+            .done(function(tags){
+                //console.log("here", tags);
+                $.each(tags, function(i, val){
+                    tagSpans += '<span class="tag"><b>x</b>&nbsp;&nbsp;<i>' + val.tagName + '</i>&nbsp;</span>&nbsp;';
+                    //console.log(tagSpans);
+                });
+            })
+            .fail(function(xhr, status, error){
+                console.log(xhr, status, error);
+            });
 
         var template =
-            '<div class="row receipt">\
+            '<div class="row receipt" id="' + id + '">\
                 <div class="cell">' + created + '</div>\
-                        <div class="cell merchant">' + merchantName + '</div>\
-                        <div class="cell amount">' + value + '</div>\
-                        <div class="cell tags">\
-                            <button class="add-tag">\
-                                Add Tag\
-                                <i class="fa fa-plus fa-2" aria-hidden="true"></i>\
-                            </button>\
-                        </div>\
-                    </div>';
+                <div class="cell merchant">' + merchantName + '</div>\
+                <div class="cell amount">' + value + '</div>\
+                <div class="cell tags">' + tagSpans +
+                    '<button class="add-tag">\
+                        Add Tag\
+                        <i class="fa fa-plus fa-2" aria-hidden="true"></i>\
+                    </button>\
+                </div>\
+            </div>';
         $('#receiptList').append(template);
     }
 
-    function toGMT(hour){
-        hours = []
+    function loadReceipts(){
+        $('div.receipt').remove();
+        $.ajax({
+            method: "GET",
+            url: baseUrl + 'receipts'
+            })
+            .done(function(receipts){
+                //console.log(receipts);
+                $.each(receipts, function(i, val){
+                    var id = val.id;//console.log(val.id);
+                    var merchantName = val.merchantName;
+                    var value = val.value;
+                    var created = val.created;
+                    addReceipt(id, merchantName, value, created);
+                });
+            })
+            .fail(function(xhr, status, error){
+                console.log(xhr, status, error);
+            });
     }
 
 });

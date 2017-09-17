@@ -1,15 +1,38 @@
 *{
-
+    font-family: 'DejaVu Serif', Georgia, "Times New Roman", Times, serif;
 }
 .clearfix{
     margin: 3%;
 }
-#new-receipt-actions{
-    margin-left: 15%
+#big_wrapper{
+    text-align: center;
+    width: 50%;
+    margin: 0 auto;
+}
+button{
+    font-size: 1em;
+    background: lightyellow;
+}
+#new-receipt{
+    background: lightyellow;
+    padding: 2% 0 0 0;
+    border: 3px solid yellow;
+    border-radius: 5%;
+}
+input{
+    line-height: 30px;
+    font-size: 30px;
+    text-align: center;
+}
+#cancel-receipt{
+    background: red;
+}
+#save-receipt{
+    background: green;
 }
 #receiptList{
     display: table;
-    width: 50%;
+    width: 100%;
 }
 .columns{
     font-weight: bold;
@@ -22,7 +45,10 @@
     display: table-cell;
     padding: 3px 10px;
 }
+.add-tag{
+}
 .tag{
+    margin-right: 1%;
     padding: 0 2%;
     border: 1px solid black;
     border-radius: 5px;

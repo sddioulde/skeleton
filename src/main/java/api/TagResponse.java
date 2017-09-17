@@ -9,6 +9,10 @@ import java.sql.Time;
  * Created by S2D on 9/1/17.
  */
 public class TagResponse {
+
+    @JsonProperty
+    Integer id;
+
     @JsonProperty
     Integer receiptId;
 
@@ -19,6 +23,7 @@ public class TagResponse {
     Time added;
 
     public TagResponse(TagsRecord dbRecord) {
+        this.id = dbRecord.getId();
         this.tagName = dbRecord.getTagName();
         this.added = dbRecord.getAdded();
         this.receiptId = dbRecord.getReceiptId();
