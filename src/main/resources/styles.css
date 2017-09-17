@@ -1,0 +1,29 @@
+*{
+
+}
+.clearfix{
+    margin: 3%;
+}
+#new-receipt-actions{
+    margin-left: 15%
+}
+#receiptList{
+    display: table;
+    width: 50%;
+}
+.columns{
+    font-weight: bold;
+}
+.row {
+    display: table-row;
+}
+.cell{
+    border: 1px solid #999999;
+    display: table-cell;
+    padding: 3px 10px;
+}
+.tag{
+    padding: 0 2%;
+    border: 1px solid black;
+    border-radius: 5px;
+}
