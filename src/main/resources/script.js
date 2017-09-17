@@ -45,23 +45,29 @@ $(document).ready(function(){
             merchant: merchantName,
             amount: value
         };
-        $.ajax({
-            method: "POST",
-            url: baseUrl + 'receipts',
-            contentType: 'application/json',
-            data: JSON.stringify(postData)
-            })
-            .done(function(){
-                loadReceipts();
-                $('#new-receipt > input').text("");
-                $('#new-receipt').remove();
-                $('#add-receipt').show();
-            })
-            .fail(function(xhr, status, error){
-                if(error)
-                    $('#new-receipt').append('<p id="new-receipt-error">Error: ' + error + '</p>');
-                console.log(error);
-            });
+        if(merchantName != '' && value != ''){
+            $.ajax({
+                method: "POST",
+                url: baseUrl + 'receipts',
+                contentType: 'application/json',
+                data: JSON.stringify(postData)
+                })
+                .done(function(){
+                    loadReceipts();
+                    $('#new-receipt > input').text("");
+                    $('#new-receipt').remove();
+                    $('#add-receipt').show();
+                })
+                .fail(function(xhr, status, error){
+                    if(error)
+                        $('#new-receipt').append('<p id="new-receipt-error">Error: ' + error + '</p>');
+                    console.log(error);
+                });
+        }
+        else{
+            $('#new-receipt').append('<p id="new-receipt-error">Both input fields are required...</p>');
+        }
+
     });
 
     $(document).on('click', '.add-tag', function(){
