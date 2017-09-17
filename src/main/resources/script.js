@@ -111,10 +111,8 @@ $(document).ready(function(){
             async: false
             })
             .done(function(tags){
-                //console.log("here", tags);
                 $.each(tags, function(i, val){
-                    tagSpans += '<span class="tag"><b>x</b>&nbsp;&nbsp;<i>' + val.tagName + '</i>&nbsp;</span>&nbsp;';
-                    //console.log(tagSpans);
+                    tagSpans += '<span class="tag"><b><i class="fa fa-times fa-2" aria-hidden="true"></i></b>&nbsp;&nbsp;<i>' + val.tagName + '</i>&nbsp;</span>&nbsp;';
                 });
             })
             .fail(function(xhr, status, error){
@@ -143,9 +141,8 @@ $(document).ready(function(){
             url: baseUrl + 'receipts'
             })
             .done(function(receipts){
-                //console.log(receipts);
                 $.each(receipts, function(i, val){
-                    var id = val.id;//console.log(val.id);
+                    var id = val.id;
                     var merchantName = val.merchantName;
                     var value = val.value;
                     var created = val.created;
