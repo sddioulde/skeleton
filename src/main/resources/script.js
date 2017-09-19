@@ -118,7 +118,7 @@ $(document).ready(function(){
             })
             .done(function(tags){
                 $.each(tags, function(i, val){
-                    tagSpans += '<span class="tag"><b><i class="fa fa-times fa-2" aria-hidden="true"></i></b>&nbsp;&nbsp;<i>' + val.tagName + '</i>&nbsp;</span>&nbsp;';
+                    tagSpans += '<span class="tagValue"><b><i class="fa fa-times fa-2" aria-hidden="true"></i></b>&nbsp;&nbsp;<i>' + val.tagName + '</i>&nbsp;</span>&nbsp;';
                 });
             })
             .fail(function(xhr, status, error){
