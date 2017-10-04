@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Assignment 3</title>
-    <link type="text/css" rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">-
+    <link type="text/css" rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
     <!--<link type="text/css" rel="stylesheet" href="styles.css">-->
     <style>
         *{
@@ -12,9 +12,31 @@
         .clearfix{
             margin: 3%;
         }
+        .left{
+            float:left;
+            display:inline-block;
+            width:50%;
+            margin-top:3%;
+        }
+        .right{
+            display:inline-block;
+        }
+
+        video {
+             width: 550px;
+             height: 450px;
+             border: 1px solid black;
+         }
+        #vidwrap {
+            margin: 20px 0;
+        }
+        #start-camera, #take-pic, #take-pic-cancel, #add-receipt {
+            height: 3em;
+        }
+
         #big_wrapper{
             text-align: center;
-            width: 50%;
+            width: 100%;
             margin: 0 auto;
         }
         button{
@@ -53,94 +75,192 @@
             display: table-cell;
             padding: 3px 10px;
         }
-        .add-tag{
-        }
-        .tag{
-            margin-right: 1%;
-            padding: 0 2%;
-            border: 1px solid black;
-            border-radius: 5px;
-        }
     </style>
 </head>
 <body>
     <div id="big_wrapper">
-        <div id="header">
-            <div id="title">
-                <h1>My Receipts</h1>
-                <button id="add-receipt">Add Receipt&nbsp;<i class="fa fa-plus-circle fa-2" aria-hidden="true"></i></button>
+        <div class="left">
+            <button id="start-camera">Start Video</button>
+            <button id="take-pic" disabled="true">Take a Snapshot!</button>
+            <button id="take-pic-cancel" disabled="true">Cancel</button>
+            <button id="add-receipt">Add Receipt&nbsp;<i class="fa fa-plus-circle fa-2" aria-hidden="true"></i></button>
+            <br>
+            <div id="vidwrap">
+                <video autoplay></video>
             </div>
-            <!--
-            <div id="new-receipt">
-            <input id="merchant" placeholder="merchant" type="text">
-            <input id="amount" placeholder="amount" type="text">
-            <div id="new-receipt-actions">
-                <button id="cancel-receipt">Cancel</button>
-                <button id="save-receipt">Save</button>
-            </div>
-            -->
         </div>
-        <div class="clearfix"></div>
-        <div id="receiptList">
-            <div class="row columns">
-                <div class="cell">Time (GMT)</div>
-                <div class="cell">Merchant</div>
-                <div class="cell">Amount ($)</div>
-                <div class="cell">Tags</div>
-            </div>
-            <!--
-            <div class="row receipt">
-                <div class="cell"></div>
-                <div class="cell merchant">Zale</div>
-                <div class="cell amount">12</div>
-                <div class="cell tags">
-                    <button class="add-tag">
-                        Add Tag
-                        <i class="fa fa-plus fa-2" aria-hidden="true"></i>
-                    </button>
+        <!--<div class="clearfix"></div>-->
+        <div class="right">
+            <div id="header">
+                <div id="title">
+                    <h1>My Receipts</h1>
                 </div>
+                <!--
+                <div id="new-receipt">
+                <input id="merchant" placeholder="merchant" type="text">
+                <input id="amount" placeholder="amount" type="text">
+                <div id="new-receipt-actions">
+                    <button id="cancel-receipt">Cancel</button>
+                    <button id="save-receipt">Save</button>
+                </div>
+                -->
             </div>
-            -->
+            <div id="receiptList">
+                <div class="row columns">
+                    <div class="cell">Time (GMT)</div>
+                    <div class="cell">Merchant</div>
+                    <div class="cell">Amount ($)</div>
+                    <div class="cell">Tags</div>
+                </div>
+                <!--
+                <div class="row receipt">
+                    <div class="cell"></div>
+                    <div class="cell merchant">Zale</div>
+                    <div class="cell amount">12</div>
+                    <div class="cell tags">
+                        <button class="add-tag">
+                            Add Tag
+                            <i class="fa fa-plus fa-2" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                </div>
+                -->
+            </div>
         </div>
     </div>
 
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>-->
+    <script data-require="jquery@*" data-semver="3.1.1" src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
     <!--<script src="script.js"></script>-->
     <script>
 
         $(document).ready(function(){
 
             // base api url
-            //baseUrl = 'http://localhost:8080/';
-            //baseUrl = 'http://ec2-52-3-227-123.compute-1.amazonaws.com/';
-            baseUrl = 'http://ec2-54-84-195-20.compute-1.amazonaws.com/';
+            baseUrl = 'http://localhost:8080/';
+            //baseUrl = 'http://ec2-54-84-195-20.compute-1.amazonaws.com/';
 
+            $('#start-camera').click(startVideo);
+            $('video').on('play', () => {
+                $('#take-pic').prop('disabled', false);
+                $('#take-pic-cancel').prop('disabled', false);
+                $('#start-camera').text('Restart Video');
+            });
+            $('#take-pic').on('click', takeSnapshot);
+            $('#take-pic-cancel').on('click', cancelCamera);
 
             // get and load all receipts
             loadReceipts();
 
+            let imageCapture;
+            let track;
+
+            function attachMediaStream(mediaStream) {
+                $('video')[0].srcObject = mediaStream;
+
+                // Saving the track allows us to capture a photo
+                track = mediaStream.getVideoTracks()[0];
+                imageCapture = new ImageCapture(track);
+            }
+
+            function startVideo() {
+                navigator.mediaDevices.getUserMedia({video: {facingMode: {exact: "environment"}}})
+                    .then(attachMediaStream)
+                    .catch(error => {
+                        navigator.mediaDevices.getUserMedia({video: true})
+                        .then(attachMediaStream)
+                        .catch(error => {
+                            console.log('you are fooked');
+                        })
+                    })
+            }
+
+            function takeSnapshot() {
+                $('#take-pic').prop('disabled', true);
+                $('#start-camera').text('Start Video');
+                $('#start-camera').prop('disabled', true);
+
+                // create a CANVAS element that is same size as the image
+                imageCapture.grabFrame()
+                    .then(img => {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+
+                        canvas.getContext('2d').drawImage(img, 0, 0);
+                        const base64EncodedImageData = canvas.toDataURL('image/png').split(',')[1];
+                        $.ajax({
+                            url: "/images",
+                            type: "POST",
+                            data: base64EncodedImageData,
+                            contentType: "text/plain",
+                            success: function(response) {
+                                console.log("Hiya",response);
+                                if(response.merchantName != null && response.amount != null) {
+                                    $('video').hide();
+                                    showReceipt(response.merchantName, response.amount);
+                                }
+                            }
+                        })
+                        .then(response => {
+                            //$('video').after('<div>got response: <pre>' + JSON.stringify(response) + '</pre></div>');
+                        })
+                        .always(() => {
+                            console.log('request complete');
+                        });
+
+                    // For debugging, you can uncomment this to see the frame that was captured
+                    // $('BODY').append(canvas);
+                    });
+            }
+
+            function cancelCamera(){
+                hideNewReceipt();
+                $('#start-camera').text('Start Video');
+                $('video')[0].srcObject = null;
+                $('video').show();
+                $('#start-camera').prop('disabled', false);
+                $('#take-pic-cancel').prop('disabled', true);
+                $('#take-pic').prop('disabled', true);
+            }
+
             // add a receipt
             $('#add-receipt').click(function(){
+                $('#start-camera').prop('disabled', true);
+                $('#take-pic').prop('disabled', true);
+                $('#take-pic-cancel').prop('disabled', true);
+                showReceipt();
+            });
+
+            function showReceipt(merchantName, amount){
                 var template =
                         '<div id="new-receipt" style="display: block;">\
-                            <input id="merchant" placeholder="merchant" type="text">\
-                            <input id="amount" placeholder="amount" type="text">\
-                            <div class="clearfix">\
+                        <input id="merchant" placeholder="merchant" type="text"';
+                if(merchantName != null)
+                    template += ' value="' + merchantName +'"';
+                template += '><input id="amount" placeholder="amount" type="text"';
+                if(amount != null)
+                    template += ' value="' + amount + '"';
+                template +=
+                            '><div class="clearfix">\
                             <div id="new-receipt-actions">\
                                 <button id="cancel-receipt">Cancel</button>\
                                 <button id="save-receipt">Save</button>\
                             </div>\
                         </div>';
-                $(this).after(template);
-                $(this).hide();
-            });
+                $('#add-receipt').after(template);
+                $('#add-receipt').hide();
+            }
 
-
-            $(document).on('click', '#cancel-receipt', function(){
+            function hideNewReceipt(){
                 $('#new-receipt > input').text("");
                 $('#new-receipt').remove();
                 $('#add-receipt').show();
+            }
+            $(document).on('click', '#cancel-receipt', function(){
+                hideNewReceipt();
+                $('#start-camera').prop('disabled', false);
             });
 
             // save and add new receipt
@@ -159,17 +279,18 @@
                         contentType: 'application/json',
                         data: JSON.stringify(postData)
                     })
-                            .done(function(){
-                                loadReceipts();
-                                $('#new-receipt > input').text("");
-                                $('#new-receipt').remove();
-                                $('#add-receipt').show();
-                            })
-                            .fail(function(xhr, status, error){
-                                if(error)
-                                    $('#new-receipt').append('<p id="new-receipt-error">Error: ' + error + '</p>');
-                                console.log(error);
-                            });
+                        .done(function(){
+                            loadReceipts();
+                            $('#new-receipt > input').text("");
+                            $('#new-receipt').remove();
+                            $('#add-receipt').show();
+                            cancelCamera();
+                        })
+                        .fail(function(xhr, status, error){
+                            if(error)
+                                $('#new-receipt').append('<p id="new-receipt-error">Error: ' + error + '</p>');
+                            console.log(error);
+                        });
                 }
                 else{
                     $('#new-receipt').append('<p id="new-receipt-error">Both input fields are required...</p>');
@@ -234,10 +355,10 @@
 
                 var template =
                         '<div class="row receipt" id="' + id + '">\
-                <div class="cell">' + created + '</div>\
-                <div class="cell merchant">' + merchantName + '</div>\
-                <div class="cell amount">' + value + '</div>\
-                <div class="cell tags">' + tagSpans +
+                        <div class="cell">' + created + '</div>\
+                        <div class="cell merchant">' + merchantName + '</div>\
+                        <div class="cell amount">' + value + '</div>\
+                        <div class="cell tags">' + tagSpans +
                         '<button class="add-tag">\
                             Add Tag\
                             <i class="fa fa-plus fa-2" aria-hidden="true"></i>\
@@ -253,22 +374,117 @@
                     method: "GET",
                     url: baseUrl + 'receipts'
                 })
-                        .done(function(receipts){
-                            $.each(receipts, function(i, val){
-                                var id = val.id;
-                                var merchantName = val.merchantName;
-                                var value = val.value;
-                                var created = val.created;
-                                addReceipt(id, merchantName, value, created);
-                            });
-                        })
-                        .fail(function(xhr, status, error){
-                            console.log(xhr, status, error);
+                    .done(function(receipts){
+                        $.each(receipts, function(i, val){
+                            var id = val.id;
+                            var merchantName = val.merchantName;
+                            var value = val.value;
+                            var created = val.created;
+                            addReceipt(id, merchantName, value, created);
                         });
+                    })
+                    .fail(function(xhr, status, error){
+                        console.log(xhr, status, error);
+                    });
             }
-
         });
 
     </script>
 </body>
 </html>
+<!--=======
+<html>
+
+<head>
+    <script data-require="jquery@*" data-semver="3.1.1" src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <style>
+        body {
+            text-align: center;
+        }
+
+        video {
+            width: 550px;
+            height: 450px;
+            border: 1px solid black;
+        }
+
+        #vidwrap {
+            margin: 20px 0;
+        }
+
+        #start, #snapshot {
+            height: 3em;
+        }
+    </style>
+    <script>
+        let imageCapture;
+        let track;
+
+        function attachMediaStream(mediaStream) {
+            $('video')[0].srcObject = mediaStream;
+
+            // Saving the track allows us to capture a photo
+            track = mediaStream.getVideoTracks()[0];
+            imageCapture = new ImageCapture(track);
+        }
+
+        function startVideo() {
+            navigator.mediaDevices.getUserMedia({video: {facingMode: {exact: "environment"}}})
+                .then(attachMediaStream)
+                .catch(error => {
+                    navigator.mediaDevices.getUserMedia({video: true})
+                        .then(attachMediaStream)
+                        .catch(error => {
+                            console.log('you are fooked');
+                        })
+                })
+        }
+
+        function takeSnapshot() {
+            // create a CANVAS element that is same size as the image
+            imageCapture.grabFrame()
+            .then(img => {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+
+                canvas.getContext('2d').drawImage(img, 0, 0);
+                const base64EncodedImageData = canvas.toDataURL('image/png').split(',')[1];
+                $.ajax({
+                    url: "/images",
+                    type: "POST",
+                    data: base64EncodedImageData,
+                    contentType: "text/plain",
+                    success: function() {},
+               })
+                .then(response => {
+                    $('video').after(`<div>got response: <pre>${JSON.stringify(response)}</pre></div>`);
+                })
+                .always(() => console.log('request complete'));
+
+                // For debugging, you can uncomment this to see the frame that was captured
+                // $('BODY').append(canvas);
+            });
+
+        }
+
+
+        $(function () {
+            $('#start').on('click', startVideo);
+            $('video').on('play', () => $('#snapshot').prop('disabled', false));
+            $('#snapshot').on('click', takeSnapshot);
+        });
+    </script>
+</head>
+
+<body>
+<button id="start">Start Video</button>
+<button id="snapshot" disabled="true">Take a Snapshot!</button>
+<br>
+<div id="vidwrap">
+    <video autoplay></video>
+    </div>
+</body>
+
+</html>
+>>>>>>> bea5e872ce6ac562e53fe1427c90bec63f953e86-->

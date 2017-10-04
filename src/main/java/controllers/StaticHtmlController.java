@@ -1,7 +1,6 @@
 /**
  * Created by S2D on 9/16/17.
  */
-
 package controllers;
 
 import com.google.common.io.Resources;
